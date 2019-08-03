@@ -1,0 +1,19 @@
+{
+  "name": "docker_web_app",
+  "version": "1.0.0",
+  "description": "Node.js on Docker",
+  "author": "First Last <first.last@example.com>",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dgraph-js": "^1.2.1",
+    "express": "^4.16.1",
+    "grpc": "^1.9.0",
+    "requirejs": "^2.3.6"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  }
+}
