@@ -69,19 +69,21 @@ async function setSchema(dgraphClient) {
         postLongitude: float .
         postLikes: int .
         postTimestamp: datetime @index(day) .
-        postUsername: string @index(exact) .
+        postUser: string @index(exact) .
         type: string @index(exact, fulltext, trigram) .
         
         commentReplyCount: int .
         commentContent: string @index(term, fulltext) .
         commentLikes: int .
         commentTimestamp: datetime @index(day) .
-        commentUsername: string @index(exact) .
+        commentUser: string @index(exact) .
         
         replyContent: string @index(term, fulltext) .
         replyLikes: int .
         replyTimestamp: datetime @index(day) .
-        replyUsername: string @index(exact) .
+        replyUser: string @index(exact) .
+        
+        userGuid: string @index(exact) .
         
     `;      
     const op = new dgraph.Operation();

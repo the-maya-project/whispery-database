@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const dgraph = require("dgraph-js");
 const grpc = require("grpc");
+//const  dist = require('geo-distance-js');
+var geodist = require('geodist')
+
 
 // Create a client stub.
 function newClientStub() {
@@ -28,7 +31,7 @@ async function getPostByUid(dgraphClient, uid) {
                 postLongitude
                 postLikes
                 postTimestamp
-                postUsername
+                postUser
                 type
                 postComment {
                     uid
@@ -36,7 +39,7 @@ async function getPostByUid(dgraphClient, uid) {
                     commentContent
                     commentLikes
                     commentTimestamp
-                    commentUsername
+                    commentUser
                 }
             
                         
@@ -50,7 +53,7 @@ async function getPostByUid(dgraphClient, uid) {
 } 
 
 //create post
-router.post('/upload', async function(req,res){
+router.post('/uploadPost', async function(req,res){
     //initalize dgraph client and transaction
     const dgraphClientStub = newClientStub();
     const dgraphClient = newClient(dgraphClientStub);
@@ -60,7 +63,11 @@ router.post('/upload', async function(req,res){
     try {
         // Create data.
         
-        const p = req.body; 
+        const p = req.body;   
+        p.type = "post";
+        p.postLikes = 0;
+        p.postCommentCount = 0;
+        p.postTimestamp = new Date();
     
     // Run mutation.
         const mu = new dgraph.Mutation();
@@ -89,16 +96,17 @@ router.post('/upload', async function(req,res){
 
 
 //retreve posts within radius
-router.get('/retrieveByRadius', async function(req,res){
+router.get('/retrievePosts', async function(req,res){
+
     
     const dgraphClientStub = newClientStub();
     const dgraphClient = newClient(dgraphClientStub);
     const txn = dgraphClient.newTxn();
     var radius1 = parseFloat(req.query.radius);
-    var lat1 = parseFloat(req.query.lat);
-    var long1 = parseFloat(req.query.long);
-    var numOffset1 = parseInt(req.query.index) * parseInt(req.query.numPost);
-    var numPost1 = parseInt(req.query.numPost); 
+    var lat1 = parseFloat(req.query.latitude);
+    var long1 = parseFloat(req.query.longitude);
+    var numOffset1 = parseInt(req.query.index) * parseInt(req.query.length);
+    var numPost1 = parseInt(req.query.length); 
     
     
     try{    
@@ -114,8 +122,16 @@ router.get('/retrieveByRadius', async function(req,res){
 
         //const vars = {};
         const res1 = await dgraphClient.newTxn().query(query);
+
+        
+        
         const posts = res1.getJson();
-        res.send(posts.nearby);
+        
+        var filterDistance = posts.nearby.filter(function(post) {
+            return geodist({lat: post.postLatitude, lon: post.postLongitude}, {lat: lat1, lon: long1}, {exact: true, unit: 'meters'}) <= radius1;
+        }); 
+        
+        res.send(filterDistance);
     } catch (e) {
         console.log(e);
         res.status(404).json({ error: 'message' })
@@ -166,7 +182,14 @@ router.get('/retrieveByDaysAndRadius', async function(req,res){
         //const vars = {};
         const res1 = await dgraphClient.newTxn().query(query);
         const posts = res1.getJson();
-        res.send(posts.nearby);
+        
+        
+              
+        var filterDistance = posts.nearby.filter(function(post) {
+            return geodist({lat: post.postLatitude, lon: post.postLongitude}, {lat: lat1, lon: long1}, {exact: true, unit: 'meters'}) <= radius1;
+        }); 
+        
+        res.send(filterDistance);
     } catch (e) {
         console.log(e);
         res.status(404).json({ error: 'message' })

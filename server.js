@@ -32,11 +32,12 @@ let initialise  = require('./routes/initialise');
 let post  = require('./routes/post');
 let comment  = require('./routes/comment');
 let reply  = require('./routes/reply');
+let user  = require('./routes/user');
 app.use('/initialise', initialise);
-app.use('/post', post);
+app.use('/feed', post);
 app.use('/comment', comment);
 app.use('/reply', reply);
-
+app.use('/authentication', user);
 
 console.log(`Running on http://${HOST}:${PORT}`);
 

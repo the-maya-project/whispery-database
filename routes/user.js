@@ -15,8 +15,8 @@ function newClient(clientStub) {
 
 
 
-//create comment
-router.post('/uploadComment', async function(req,res){
+//create user
+router.post('/createUser', async function(req,res){
     //initalize dgraph client and transaction
     const dgraphClientStub = newClientStub();
     const dgraphClient = newClient(dgraphClientStub);
@@ -26,6 +26,7 @@ router.post('/uploadComment', async function(req,res){
     try {
         // Create data.
         const p = req.body; 
+        p.type = "user";
     
     // Run mutation.
         const mu = new dgraph.Mutation();
@@ -35,8 +36,8 @@ router.post('/uploadComment', async function(req,res){
         // Commit transaction.
         await txn.commit();
 
-        const createdComment = await getCommentByUid(dgraphClient, assigned.getUidsMap().get("blank-0"));
-        res.send(createdComment);
+        const createdUser = await getUserByUid(dgraphClient, assigned.getUidsMap().get("blank-0"));
+        res.send(createdUser);
     } catch (e) {
         console.log(e);
         res.status(200).json({ error: 'message' })
@@ -52,9 +53,34 @@ router.post('/uploadComment', async function(req,res){
 })
 
 
+//retrieve user via user uid
+async function getUserByUid(dgraphClient, uid) {
 
-//retrieve comment and its replies by comment uid
-router.get('/retrieveComments', async function(req,res){
+        // Run query.
+    const query = ` {
+            getUser(func: uid(${uid})){
+                uid 
+                userGuid
+                type
+                userPost {
+                    uid
+                    postContent
+                    postLatitude
+                    postLongitude
+                    postLikes
+                    postTimestamp
+                    type
+                }
+              }
+        }`;
+
+        //const vars = {};
+        const res1 = await dgraphClient.newTxn().query(query);
+        const user = res1.getJson();
+        return(user.getUser);
+} 
+
+router.get('/retrieveUserByUid', async function(req,res){
     //initalize dgraph client and transaction
     const dgraphClientStub = newClientStub();
     const dgraphClient = newClient(dgraphClientStub);
@@ -62,8 +88,8 @@ router.get('/retrieveComments', async function(req,res){
     
     var uid = req.query.uid;
     
-    const comment = await getCommentByUid(dgraphClient, uid);
-    res.send(comment);
+    const user = await getUserByUid(dgraphClient, uid);
+    res.send(user);
     
     await txn.discard();
         //close connection
@@ -73,36 +99,7 @@ router.get('/retrieveComments', async function(req,res){
 
 })
 
-//retrieve comment via post uid
-async function getCommentByUid(dgraphClient, uid) {
 
-        // Run query.
-    const query = ` {
-            getComment(func: uid(${uid})){
-                uid        
-                commentReplyCount
-                commentContent
-                commentLikes
-                commentTimestamp
-                commentUser
-                type
-                commentReply {
-                    uid
-                    replyContent
-                    replyLikes
-                    replyTimestamp
-                    replyUser
-                }
-            
-                        
-              }
-        }`;
-
-        //const vars = {};
-        const res1 = await dgraphClient.newTxn().query(query);
-        const posts = res1.getJson();
-        return(posts.getComment);
-} 
 
 
 

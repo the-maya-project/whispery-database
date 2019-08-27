@@ -25,7 +25,10 @@ router.post('/send', async function(req,res){
     try {
         // Create data.
         const p = req.body; 
-    
+        p.commentReply.type = "reply";
+        p.commentReply.replyLikes = 0;
+        p.commentReply.replyTimestamp = new Date();
+
     // Run mutation.
         const mu = new dgraph.Mutation();
         mu.setSetJson(p);
